@@ -19,5 +19,8 @@ RUN chmod -R 777 logs
 # Copy the rest of the application code to the working directory
 COPY . .
 
+# Ensure the config.yml file is copied
+COPY config.yml /app/config.yml
+
 # Default command to run when no command is specified
 ENTRYPOINT ["python", "radarr-autodelete.py"]
