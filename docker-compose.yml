@@ -7,7 +7,7 @@ services:
       - media_server
     volumes:
       - '/docker/radarr_autodelete/logs:/app/logs'
-      - '/docker/radarr_autodelete/config.yml:/app/config.yml'
+      - '/docker/radarr_autodelete:/app'
     environment:
       - PUID=1001
       - PGID=100
@@ -17,3 +17,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+        
+networks:
+  media_server:
+    external: true
