@@ -2,7 +2,6 @@ services:
   radarr_autodelete:
     image: iedgir01/radarr_autodelete:latest
     container_name: radarr_autodelete
-    command: autodelete
     networks:
       - media_server
     volumes:
