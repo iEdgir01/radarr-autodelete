@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 # Load configuration from config.yml
-config_file = os.path.join(os.path.dirname(__file__), 'app', 'config', 'config.yml')
+config_file = os.path.join(os.path.dirname(__file__), 'config', 'config.yml')
 with open(config_file, 'r') as file:
     config = yaml.safe_load(file)
 
