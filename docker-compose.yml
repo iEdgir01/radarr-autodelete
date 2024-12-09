@@ -6,7 +6,7 @@ services:
     networks:
       - media_server
     volumes:
-      - '/docker/radarr_autodelete/logs:/app/logs'
+      - '/docker/radarr_autodelete/log:/app/log'
       - '/docker/radarr_autodelete/config:/app/config'
     environment:
       - PUID=1001
