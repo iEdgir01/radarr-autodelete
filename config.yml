@@ -1,0 +1,15 @@
+radarr:
+  url: "http://radarr:port"
+  api_key: "your-radarr-api-key"
+
+plex:
+  url: "http://plex:port"
+  token: "your-plex-token"
+
+accepted_languages:
+  - "English"
+  - "Japanese"
+  - "Korean"
+
+movie_collection_name: "My Movie Collection"
+log_directory: "/app/logs"

@@ -1,0 +1,16 @@
+  radarr-autodelete:
+    image: iedgir01/radarr_autodelete:latest
+    container_name: radarr-autodelete
+    command: autodelete
+    volumes:
+      - '/docker/radarr_autodelete/logs:/app/logs'
+      - '/docker/radarr_autodelete/var.env:/app/var.env'
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Africa/Johannesburg
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
