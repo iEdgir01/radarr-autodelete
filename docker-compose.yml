@@ -1,13 +1,13 @@
 services:  
-  radarr-autodelete:
+  radarr_autodelete:
     image: iedgir01/radarr_autodelete:latest
-    container_name: radarr-autodelete
+    container_name: radarr_autodelete
     command: autodelete
     networks:
       - media_server
     volumes:
       - '/docker/radarr_autodelete/logs:/app/logs'
-      - '/docker/radarr_autodelete:/app'
+      - '/docker/radarr_autodelete/config:/app/config'
     environment:
       - PUID=1001
       - PGID=100
