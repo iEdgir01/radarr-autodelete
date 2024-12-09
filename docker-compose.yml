@@ -2,12 +2,14 @@
     image: iedgir01/radarr_autodelete:latest
     container_name: radarr-autodelete
     command: autodelete
+    networks:
+      - media_server
     volumes:
       - '/docker/radarr_autodelete/logs:/app/logs'
       - '/docker/radarr_autodelete/config.yml:/app/config.yml'
     environment:
-      - PUID=1000
-      - PGID=1000
+      - PUID=1001
+      - PGID=100
       - TZ=Africa/Johannesburg
     logging:
       driver: "json-file"
