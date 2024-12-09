@@ -1,3 +1,4 @@
+services:  
   radarr-autodelete:
     image: iedgir01/radarr_autodelete:latest
     container_name: radarr-autodelete
