@@ -1,6 +1,7 @@
 import yaml
 import logging
 import os
+import requests
 from datetime import datetime
 from plexapi.myplex import PlexServer
 from plexapi.exceptions import PlexApiException
@@ -22,45 +23,33 @@ COLLECTION_NAME = config['movie_collection_name']
 LOG_DIR = config['log_directory']
 
 # Create the logs directory if it doesn't exist
-log_dir = '/app/logs'
-os.makedirs(log_dir, exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
 
 # Configure logging
-log_file = os.path.join(log_dir, 'radarr-autodelete.log')
+log_file = os.path.join(LOG_DIR, 'radarr-autodelete.log')
 logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s %(levelname)s[%(name)s]:%(message)s')
 
 # Log script start
 logging.info('Script started.')
 
-# configure radarr connections
+# Configure Radarr API connection
 API_EXTENSION = '/api/v3/'
-LINK = config['RADARR_URL']
-API_HOST = urljoin(LINK, API_EXTENSION)
+API_HOST = urljoin(RADARR_URL, API_EXTENSION)
 logging.info(f'API URL: {API_HOST}')
-
-API_KEY = config['RADARR_API_KEY']
-
-PLEX_URL = config['PLEX_URL']
-PLEX_TOKEN = config['PLEX_TOKEN']
-
-# configure language profiles to keep
-ACCEPTED_LANGUAGES = config['ACCEPTED_LANGUAGES']
-
-COLLECTION_NAME = config['MOVIE_COLLECTION_NAME']
 
 MOVIE = []
 
 @retry(stop=stop_after_attempt(10), wait=wait_exponential(multiplier=1, min=4, max=60), 
        retry=retry_if_exception_type((requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError, PlexApiException)))
 def get(endpoint: str, extra_params: dict):
-    params = {'apikey': API_KEY}
+    params = {'apikey': RADARR_API_KEY}
     params.update(extra_params)
     response = requests.get(API_HOST + endpoint, params=params)
     response.raise_for_status()
     return response.json()
 
 def delete(endpoint: str, extra_params: dict):
-    params = {'apikey': API_KEY}
+    params = {'apikey': RADARR_API_KEY}
     params.update(extra_params)
     response = requests.delete(API_HOST + endpoint, params=params)
     response.raise_for_status()

@@ -4,7 +4,7 @@
     command: autodelete
     volumes:
       - '/docker/radarr_autodelete/logs:/app/logs'
-      - '/docker/radarr_autodelete/var.env:/app/var.env'
+      - '/docker/radarr_autodelete/config.yml:/app/config.yml'
     environment:
       - PUID=1000
       - PGID=1000
