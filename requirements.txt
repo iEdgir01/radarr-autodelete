@@ -1,5 +1,5 @@
 requests
-yaml
+pyyaml
 python-dotenv
 PlexAPI
 tenacity
