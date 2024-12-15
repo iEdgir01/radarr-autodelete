@@ -1,6 +1,7 @@
 import yaml
 import logging
 import os
+import sys
 import requests
 from datetime import datetime
 from plexapi.myplex import PlexServer
@@ -26,11 +27,24 @@ LOG_DIR = config['log_directory']
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # Configure logging
-log_file = os.path.join(LOG_DIR, 'radarr-autodelete.log')
-logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s %(levelname)s[%(name)s]:%(message)s')
+log_file = os.path.join(LOG_DIR, 'media_cleaner.log')
+
+# Create the root logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# File handler to write logs to a file
+file_handler = logging.FileHandler(log_file)
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
+logger.addHandler(file_handler)
+
+# Stream handler to output logs to stdout
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
+logger.addHandler(stream_handler)
 
 # Log script start
-logging.info('Script started.')
+logger.info('Script started.')
 
 # Configure Radarr API connection
 API_EXTENSION = '/api/v3/'
