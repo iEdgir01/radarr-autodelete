@@ -6,10 +6,13 @@ plex:
   url: "http://plex:port"
   token: "your-plex-token"
 
+#language profiles of movies that will be kept - all else will be removed
 accepted_languages:
   - "English"
   - "Japanese"
   - "Korean"
 
-movie_collection_name: "My Movie Collection"
+#plex collection name of which all movies within, will be kept
+movie_collection_name: "plex collection name"
+
 log_directory: "/app/logs"
