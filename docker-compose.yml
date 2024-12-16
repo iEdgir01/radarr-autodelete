@@ -5,12 +5,12 @@ services:
     networks:
       - media_server
     volumes:
-      - '/docker/radarr_autodelete/logs:/app/logs'
-      - '/docker/radarr_autodelete/config:/app/config'
+      - '/path/to/your/radarr_autodelete/logs:/app/logs'
+      - '/path/to/your/radarr_autodelete/config:/app/config'
     environment:
-      - PUID=1001
-      - PGID=100
-      - TZ=Africa/Johannesburg
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
     logging:
       driver: "json-file"
       options:
