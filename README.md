@@ -10,7 +10,7 @@
   - set ACCEPTED_LANGUAGES to languages you strictly want i.e (ACCEPTED_LANGUAGES=English,Japanese,Korean). 
 - Keeps movies in a specified Plex collection to avoid deletion (defined by MOVIE_COLLECTION_NAME).
   - i.e (MOVIE_COLLECTION_NAME=Keep)
-- Logs all actions for easy tracking.
+- Logs all actions for easy tracking in `/app/logs`.
 
 ## Usage
 This project has a dockerfile hosted on dockerhub for ease of deployment - specifically for OMV setups. 
@@ -41,9 +41,6 @@ ACCEPTED_LANGUAGES=English,Japanese,Korean
 
 #plex collection name of which all movies within, will be kept
 MOVIE_COLLECTION_NAME=plex collection name
-
-#logging
-LOG_DIRECTORY=/app/logs
 
 #Dry Run - Testing
 DRY_RUN=false #true/false
