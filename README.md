@@ -5,8 +5,10 @@
 ## What It Does
 
 - Deletes unmonitored movies from Radarr.
-- Removes movies in unsupported languages (defined by accepted_languages in the config.yml). 
-- Keeps movies in a specified Plex collection to avoid deletion (defined by movie collection name in the config.yml).
+- can remove movies in unsupported languages:
+  - set LANGUAGE_FILTER to true if this is required
+  - set ACCEPTED_LANGUAGES to languages you strictly want i.e (ACCEPTED_LANGUAGES=English,Japanese,Korean). 
+- Keeps movies in a specified Plex collection to avoid deletion (defined by MOVIE_COLLECTION_NAME).
 - Logs all actions for easy tracking.
 
 ## Usage
@@ -16,28 +18,26 @@ Building Docker images locally on OpenMediaVault can be inconvenient since the O
 
 I have created [a dedicated Docker image](https://hub.docker.com/r/iedgir01/radarr_autodelete), which will allow you to use the provided docker-compose file instead of building the image and hosting the codebase locally.
 
-## `config.yml` File Setup
+## `ENVIRONMENT_VARIABLES` Setup - this modifies the config.yml values within /config.
 
-To configure the script, edit the `config.yml` file with your radarr and plex url and api key / token.
+To configure the script add these ENVIROMENT_VARIABLES to the docker compose / OMV setup or edit the `config.yml` file with your radarr and plex url and api key / token.
 the config.yml needs to be saved inside ``/path/to/your/radarr_autodelete/config``.
 
-```yaml
-radarr:
-  url: "http://radarr:port"
-  api_key: "your-radarr-api-key"
+```bash
+#basic config !!REQUIRED!!
+RADARR_URL=http://radarr:port
+RADARR_API_KEY=your-radarr-api-key
+PLEX_URL=http://plex:port
+PLEX_TOKEN=your-plex-token
 
-plex:
-  url: "http://plex:port"
-  token: "your-plex-token"
-
+#enable language filtering for accepted languages
+LANGUAGE_FILTER=true
 #language profiles of movies that will be kept - all else will be removed
-accepted_languages:
-  - "English"
-  - "Japanese"
-  - "Korean"
+ACCEPTED_LANGUAGES=English,Japanese,Korean
 
 #plex collection name of which all movies within, will be kept
-movie_collection_name: "plex collection name"
+MOVIE_COLLECTION_NAME=plex collection name
 
-log_directory: "/app/logs"
+#logging
+LOG_DIRECTORY=/app/logs
 ```
