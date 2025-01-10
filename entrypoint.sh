@@ -62,8 +62,13 @@ if [ -f /app/config/config.yml ]; then
     log_info "Loading configuration from config.yml"
     # Load the config file as environment variables
     # Use sed to replace carriage returns and remove double quotes
-    config_vars=$(sed 's/\r//g' /app/config/config.yml | grep -v '^#' | awk -F": " '{gsub(/"/, "", $2); print $1"="$2}' | xargs)
-    eval $config_vars
+    while IFS= read -r line || [ -n "$line" ]; do
+        if [[ $line =~ ^[^#]*:[^#]*$ ]]; then
+            varname=$(echo "$line" | cut -d ':' -f 1 | tr -d '[:space:]')
+            varvalue=$(echo "$line" | cut -d ':' -f 2- | tr -d '[:space:]')
+            eval "$varname=\"$varvalue\""
+        fi
+    done < <(sed 's/\r//g' /app/config/config.yml)
     check_config_vars
 else
     log_info "config.yml not found."
