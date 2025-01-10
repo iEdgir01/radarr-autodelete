@@ -18,11 +18,6 @@ services:
       - PUID=1000 #Change to your PUID
       - PGID=1000 #Change to your PGID
       - TZ=UTC #Change to your TZ
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
         
 networks:
   media_server:
