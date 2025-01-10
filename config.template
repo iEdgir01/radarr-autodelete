@@ -11,3 +11,4 @@ accepted_languages: ${ACCEPTED_LANGUAGES"}  # Comma-separated list
 
 movie_collection_name: "${MOVIE_COLLECTION_NAME}"
 log_directory: "${LOG_DIRECTORY:-/app/logs}"  # Default to `/app/logs` if not set
+dry_run: "${DRY_RUN:-false}"

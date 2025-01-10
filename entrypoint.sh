@@ -24,6 +24,7 @@ check_env_vars() {
     if [ "$LANGUAGE_FILTER" = true ] && [ -z "$ACCEPTED_LANGUAGES" ]; then
         missing_vars+=("ACCEPTED_LANGUAGES (required if LANGUAGE_FILTER is true)")
     fi
+    DRY_RUN=${DRY_RUN:-false}
     MOVIE_COLLECTION_NAME=${MOVIE_COLLECTION_NAME:-}
     LOG_DIRECTORY=${LOG_DIRECTORY:-/app/logs}
 }

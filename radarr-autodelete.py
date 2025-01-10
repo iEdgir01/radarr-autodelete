@@ -19,10 +19,11 @@ RADARR_URL = config['radarr']['url']
 RADARR_API_KEY = config['radarr']['api_key']
 PLEX_URL = config['plex']['url']
 PLEX_TOKEN = config['plex']['token']
-LANGUAGE_FILTER = config.get('language_filter')  # Default to True if not specified
+LANGUAGE_FILTER = config.get('language_filter')
 ACCEPTED_LANGUAGES = config.get('accepted_languages', [])
 COLLECTION_NAME = config['movie_collection_name']
 LOG_DIR = config['log_directory']
+DRY_RUN = config.get('dry_run')
 
 # Create the logs directory if it doesn't exist
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -39,7 +40,7 @@ stream_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)
 logger.addHandler(stream_handler)
 
 # Log script start
-logger.info('Script started.')
+logger.info('Script started. DRY_RUN=%s', DRY_RUN)
 
 # Configure Radarr API connection
 API_EXTENSION = '/api/v3/'
@@ -58,10 +59,13 @@ def get(endpoint: str, extra_params: dict):
     return response.json()
 
 def delete(endpoint: str, extra_params: dict):
-    params = {'apikey': RADARR_API_KEY}
-    params.update(extra_params)
-    response = requests.delete(API_HOST + endpoint, params=params)
-    response.raise_for_status()
+    if DRY_RUN:
+        logger.info(f'Dry run: Would delete endpoint {endpoint} with params {extra_params}')
+    else:
+        params = {'apikey': RADARR_API_KEY}
+        params.update(extra_params)
+        response = requests.delete(API_HOST + endpoint, params=params)
+        response.raise_for_status()
 
 @retry(stop=stop_after_attempt(10), wait=wait_exponential(multiplier=1, min=4, max=60), 
        retry=retry_if_exception_type((requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError, PlexApiException)))
