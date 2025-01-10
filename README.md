@@ -9,6 +9,7 @@
   - set LANGUAGE_FILTER to true if this is required
   - set ACCEPTED_LANGUAGES to languages you strictly want i.e (ACCEPTED_LANGUAGES=English,Japanese,Korean). 
 - Keeps movies in a specified Plex collection to avoid deletion (defined by MOVIE_COLLECTION_NAME).
+  - i.e (MOVIE_COLLECTION_NAME=Keep)
 - Logs all actions for easy tracking.
 
 ## Usage
@@ -18,9 +19,9 @@ Building Docker images locally on OpenMediaVault can be inconvenient since the O
 
 I have created [a dedicated Docker image](https://hub.docker.com/r/iedgir01/radarr_autodelete), which will allow you to use the provided docker-compose file instead of building the image and hosting the codebase locally.
 
-## `ENVIRONMENT_VARIABLES` Setup - this modifies the config.yml values within /config.
+## `ENVIRONMENT_VARIABLES` Setup - this creates the config.yml values within /config from config.template.
 
-To configure the script add these ENVIROMENT_VARIABLES to the docker compose / OMV setup or edit the `config.yml` file with your radarr and plex url and api key / token.
+To configure the script add these ENVIROMENT_VARIABLES to the docker compose / OMV setup or edit the `config.template` file and save it as `config.yml`.
 the config.yml needs to be saved inside ``/path/to/your/radarr_autodelete/config``.
 
 ```bash
