@@ -21,7 +21,7 @@ I have created [a dedicated Docker image](https://hub.docker.com/r/iedgir01/rada
 
 ## `ENVIRONMENT_VARIABLES` Setup - this creates the config.yml values within /config from config.template.
 
-To configure the script add these ENVIROMENT_VARIABLES to the docker compose / OMV setup or edit the `config.template` file and save it as `config.yml`.
+To configure the script add these ENVIROMENT_VARIABLES to the docker compose or edit the `config.template` file and save it as `config.yml`.
 the config.yml needs to be saved inside ``/path/to/your/radarr_autodelete/config``.
 
 ```bash
