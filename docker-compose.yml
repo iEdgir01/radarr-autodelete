@@ -14,7 +14,6 @@ services:
       - LANGUAGE_FILTER=true #true/false for language filtering
       - ACCEPTED_LANGUAGES=English,Japanese,Korean 
       - MOVIE_COLLECTION_NAME=Your_PLex_Collection_To_Keep
-      - LOG_DIRECTORY=/app/logs
       - DY_RUN=true #true/false for testing
       - PUID=1000 #Change to your PUID
       - PGID=1000 #Change to your PGID

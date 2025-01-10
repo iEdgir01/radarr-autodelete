@@ -26,7 +26,6 @@ check_env_vars() {
     fi
     DRY_RUN=${DRY_RUN:-false}
     MOVIE_COLLECTION_NAME=${MOVIE_COLLECTION_NAME:-}
-    LOG_DIRECTORY=${LOG_DIRECTORY:-/app/logs}
 }
 
 # Check for required config variables
@@ -48,8 +47,8 @@ update_config_yml() {
 
 # Ensure log directory exists and set permissions
 setup_log_directory() {
-    mkdir -p "$LOG_DIRECTORY"
-    chmod -R 777 "$LOG_DIRECTORY"
+    mkdir -p "/app/logs"
+    chmod -R 777 "/app/logs"
 }
 
 # Main script execution

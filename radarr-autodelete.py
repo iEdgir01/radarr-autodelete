@@ -21,7 +21,8 @@ PLEX_URL = config['plex']['url']
 PLEX_TOKEN = config['plex']['token']
 ACCEPTED_LANGUAGES = config.get('accepted_languages', [])
 COLLECTION_NAME = config['movie_collection_name']
-LOG_DIR = config['log_directory']
+
+LOG_DIR = '/app/logs'
 
 # Configure logging
 os.makedirs(LOG_DIR, exist_ok=True)
