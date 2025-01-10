@@ -9,6 +9,7 @@
   - set LANGUAGE_FILTER to true if this is required
   - set ACCEPTED_LANGUAGES to languages you strictly want i.e (ACCEPTED_LANGUAGES=English,Japanese,Korean). 
 - Keeps movies in a specified Plex collection to avoid deletion (defined by MOVIE_COLLECTION_NAME).
+  - i.e (MOVIE_COLLECTION_NAME=Keep)
 - Logs all actions for easy tracking.
 
 ## Usage
