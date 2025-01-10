@@ -7,9 +7,18 @@ services:
     volumes:
       - '/path/to/your/radarr_autodelete/logs:/app/logs'
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=UTC
+      - RADARR_URL=http://your_radarr_url:port
+      - RADARR_API_KEY=your_radarr_api
+      - PLEX_URL=http://your_plex_url:port
+      - PLEX_TOKEN=your_plex_token
+      - LANGUAGE_FILTER=true #true/false for language filtering
+      - ACCEPTED_LANGUAGES=English,Japanese,Korean 
+      - MOVIE_COLLECTION_NAME=Your_PLex_Collection_To_Keep
+      - LOG_DIRECTORY=/app/logs
+      - DY_RUN=true #true/false for testing
+      - PUID=1000 #Change to your PUID
+      - PGID=1000 #Change to your PGID
+      - TZ=UTC #Change to your TZ
     logging:
       driver: "json-file"
       options:
