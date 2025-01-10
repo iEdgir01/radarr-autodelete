@@ -6,7 +6,6 @@ services:
       - media_server
     volumes:
       - '/path/to/your/radarr_autodelete/logs:/app/logs'
-      - '/path/to/your/radarr_autodelete/config:/app/config'
     environment:
       - PUID=1000
       - PGID=1000
