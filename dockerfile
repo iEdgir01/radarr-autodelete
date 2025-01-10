@@ -1,5 +1,8 @@
 FROM python:3.9-slim-buster
 
+# Install gettext package for envsubst
+RUN apt-get update && apt-get install -y gettext && apt-get clean
+
 # Set the working directory
 WORKDIR /app
 
