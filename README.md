@@ -19,6 +19,9 @@ Building Docker images locally on OpenMediaVault can be inconvenient since the O
 
 I have created [a dedicated Docker image](https://hub.docker.com/r/iedgir01/radarr_autodelete), which will allow you to use the provided docker-compose file instead of building the image and hosting the codebase locally.
 
+## Testing
+Use `DRY_RUN=true` to run the python script without deleting anything - check the logs for the results. This is to confirm that your langugae profiles and watched indicators are working as expected.
+
 ## `ENVIRONMENT_VARIABLES` Setup - this creates the config.yml values within /config from config.template.
 
 To configure the script add these ENVIROMENT_VARIABLES to the docker compose or edit the `config.template` file and save it as `config.yml`.
@@ -32,7 +35,7 @@ PLEX_URL=http://plex:port
 PLEX_TOKEN=your-plex-token
 
 #enable language filtering for accepted languages
-LANGUAGE_FILTER=true
+LANGUAGE_FILTER=true #true/false
 #language profiles of movies that will be kept - all else will be removed
 ACCEPTED_LANGUAGES=English,Japanese,Korean
 
@@ -41,4 +44,7 @@ MOVIE_COLLECTION_NAME=plex collection name
 
 #logging
 LOG_DIRECTORY=/app/logs
+
+#Dry Run - Testing
+DRY_RUN=false #true/false
 ```
