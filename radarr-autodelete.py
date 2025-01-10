@@ -9,19 +9,6 @@ from plexapi.exceptions import PlexApiException
 from urllib.parse import urljoin
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-# Configure logging
-LOG_DIR = 'path_to_log_directory'  # Update this path as per your configuration
-os.makedirs(LOG_DIR, exist_ok=True)
-log_file = os.path.join(LOG_DIR, 'media_cleaner.log')
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler(log_file)
-file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
-logger.addHandler(file_handler)
-stream_handler = logging.StreamHandler(sys.stdout)
-stream_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
-logger.addHandler(stream_handler)
-
 # Load configuration from config.yml
 config_file = os.path.join(os.getcwd(), 'config', 'config.yml')
 with open(config_file, 'r') as file:
@@ -34,6 +21,19 @@ PLEX_URL = config['plex']['url']
 PLEX_TOKEN = config['plex']['token']
 ACCEPTED_LANGUAGES = config.get('accepted_languages', [])
 COLLECTION_NAME = config['movie_collection_name']
+LOG_DIR = config['log_directory']
+
+# Configure logging
+os.makedirs(LOG_DIR, exist_ok=True)
+log_file = os.path.join(LOG_DIR, 'radarr_autodelete.log')
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+file_handler = logging.FileHandler(log_file)
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
+logger.addHandler(file_handler)
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
+logger.addHandler(stream_handler)
 
 # Convert environment variable to boolean
 def str_to_bool(var, value):
@@ -54,7 +54,7 @@ except ValueError as e:
     logger.error(str(e))
 
 # Log script start
-logger.info('Script started. DRY_RUN=%s', DRY_RUN)
+logger.info('Script started.')
 
 # Configure Radarr API connection
 API_EXTENSION = '/api/v3/'
