@@ -61,7 +61,8 @@ update_config_yml
 if [ -f /app/config/config.yml ]; then
     log_info "Loading configuration from config.yml"
     # Load the config file as environment variables
-    config_vars=$(grep -v '^#' /app/config/config.yml | awk -F": " '{gsub(/\r/, "", $2); print $1"=\""$2"\""}' | xargs)
+    # Use sed to replace carriage returns and remove double quotes
+    config_vars=$(sed 's/\r//g' /app/config/config.yml | grep -v '^#' | awk -F": " '{gsub(/"/, "", $2); print $1"="$2}' | xargs)
     eval $config_vars
     check_config_vars
 else
