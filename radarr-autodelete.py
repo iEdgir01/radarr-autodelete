@@ -19,7 +19,7 @@ RADARR_URL = config['radarr']['url']
 RADARR_API_KEY = config['radarr']['api_key']
 PLEX_URL = config['plex']['url']
 PLEX_TOKEN = config['plex']['token']
-LANGUAGE_FILTER = config.get('language_filter', True)  # Default to True if not specified
+LANGUAGE_FILTER = config.get('language_filter')  # Default to True if not specified
 ACCEPTED_LANGUAGES = config.get('accepted_languages', [])
 COLLECTION_NAME = config['movie_collection_name']
 LOG_DIR = config['log_directory']
@@ -96,14 +96,17 @@ try:
                 deletefiles = True
                 addImportExclusion = False
                 delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
-            elif LANGUAGE_FILTER and language not in ACCEPTED_LANGUAGES:
-                logger.info(f'removing movie : {movie["title"]} - reason : Incorrect language profile')
-                logger.info('--------------------------------------------------')
-                deletefiles = True
-                addImportExclusion = False
-                delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
             else:
-                continue
+                if LANGUAGE_FILTER == True:
+                    if language not in ACCEPTED_LANGUAGES:
+                        logger.info(f'removing movie : {movie["title"]} - reason : Incorrect language profile')
+                        logger.info('--------------------------------------------------')
+                        deletefiles = True
+                        addImportExclusion = False
+                        delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
+                else:
+                    continue
+
     
     for movie in MOVIE:
         logger.info(f"skipping movie : {movie} - reason : in collection {COLLECTION_NAME}")
