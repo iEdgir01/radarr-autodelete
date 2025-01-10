@@ -19,7 +19,8 @@ RADARR_URL = config['radarr']['url']
 RADARR_API_KEY = config['radarr']['api_key']
 PLEX_URL = config['plex']['url']
 PLEX_TOKEN = config['plex']['token']
-ACCEPTED_LANGUAGES = config['accepted_languages']
+LANGUAGE_FILTER = config.get('language_filter', True)  # Default to True if not specified
+ACCEPTED_LANGUAGES = config.get('accepted_languages', [])
 COLLECTION_NAME = config['movie_collection_name']
 LOG_DIR = config['log_directory']
 
@@ -28,17 +29,11 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 # Configure logging
 log_file = os.path.join(LOG_DIR, 'media_cleaner.log')
-
-# Create the root logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-
-# File handler to write logs to a file
 file_handler = logging.FileHandler(log_file)
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
 logger.addHandler(file_handler)
-
-# Stream handler to output logs to stdout
 stream_handler = logging.StreamHandler(sys.stdout)
 stream_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
 logger.addHandler(stream_handler)
@@ -49,7 +44,7 @@ logger.info('Script started.')
 # Configure Radarr API connection
 API_EXTENSION = '/api/v3/'
 API_HOST = urljoin(RADARR_URL, API_EXTENSION)
-logging.info(f'API URL: {API_HOST}')
+logger.info(f'API URL: {API_HOST}')
 
 MOVIE = []
 
@@ -76,34 +71,34 @@ def connect_to_plex(plex_url, plex_token):
 # Main script logic
 try:
     # Ensure service is reachable with retry
-    logging.info('Checking Plex service reachability...')
+    logger.info('Checking Plex service reachability...')
     plex = connect_to_plex(PLEX_URL, PLEX_TOKEN)
-    logging.info('Plex service is reachable. Proceeding with script execution.')
+    logger.info('Plex service is reachable. Proceeding with script execution.')
 
-    logging.info('Checking Radarr service reachability...')
+    logger.info('Checking Radarr service reachability...')
     movies = get('movie', {})
-    logging.info('Radarr service is reachable. Proceeding with script execution.')
+    logger.info('Radarr service is reachable. Proceeding with script execution.')
 
     # Get the list of movies from Plex that should not be deleted
     movies_section = plex.library.section('Movies')
     for video in movies_section.search(collection=COLLECTION_NAME):
         MOVIE.append(video.title)
 
-    # Get movies from Radarr and process them
+    # Process movies in Radarr
     for movie in movies:
         language = movie.get("originalLanguage", {}).get("name", "Unknown")
         monitored = movie.get("monitored", True)
         
         if movie["title"] not in MOVIE:
             if not monitored:
-                logging.info(f'removing movie : {movie["title"]} - reason : unmonitored')
-                logging.info('--------------------------------------------------')
+                logger.info(f'removing movie : {movie["title"]} - reason : unmonitored')
+                logger.info('--------------------------------------------------')
                 deletefiles = True
                 addImportExclusion = False
                 delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
-            elif language not in ACCEPTED_LANGUAGES:
-                logging.info(f'removing movie : {movie["title"]} - reason : Incorrect language profile')
-                logging.info('--------------------------------------------------')
+            elif LANGUAGE_FILTER and language not in ACCEPTED_LANGUAGES:
+                logger.info(f'removing movie : {movie["title"]} - reason : Incorrect language profile')
+                logger.info('--------------------------------------------------')
                 deletefiles = True
                 addImportExclusion = False
                 delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
@@ -111,13 +106,13 @@ try:
                 continue
     
     for movie in MOVIE:
-        logging.info(f"skipping movie : {movie} - reason : in collection {COLLECTION_NAME}")
-        logging.info('--------------------------------------------------')
+        logger.info(f"skipping movie : {movie} - reason : in collection {COLLECTION_NAME}")
+        logger.info('--------------------------------------------------')
         
 except Exception as e:
     # Log any exceptions that occur
-    logging.error(f'An error occurred: {str(e)}')
+    logger.error(f'An error occurred: {str(e)}')
 
 finally:
     # Log script end
-    logging.info('Script ended.')
+    logger.info('Script ended.')

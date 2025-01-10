@@ -1,18 +1,13 @@
 radarr:
-  url: "http://radarr:port"
-  api_key: "your-radarr-api-key"
+  url: "${RADARR_URL}"
+  api_key: "${RADARR_API_KEY}"
 
 plex:
-  url: "http://plex:port"
-  token: "your-plex-token"
+  url: "${PLEX_URL}"
+  token: "${PLEX_TOKEN}"
 
-#language profiles of movies that will be kept - all else will be removed
-accepted_languages:
-  - "English"
-  - "Japanese"
-  - "Korean"
+language_filter: ${LANGUAGE_FILTER:-false}  # Use default value `false` if not specified
+accepted_languages: ${ACCEPTED_LANGUAGES"}  # Comma-separated list
 
-#plex collection name of which all movies within, will be kept
-movie_collection_name: "plex collection name"
-
-log_directory: "/app/logs"
+movie_collection_name: "${MOVIE_COLLECTION_NAME}"
+log_directory: "${LOG_DIRECTORY:-/app/logs}"  # Default to `/app/logs` if not set
