@@ -77,6 +77,7 @@ def get(endpoint: str, extra_params: dict):
 def delete(endpoint: str, extra_params: dict):
     if DRY_RUN:
         logger.info(f'Dry run: Would delete endpoint {endpoint} with params {extra_params}')
+        logger.debug(f'Detailed delete parameters: {extra_params}')
     else:
         params = {'apikey': RADARR_API_KEY}
         params.update(extra_params)
@@ -110,21 +111,29 @@ try:
         language = movie.get("originalLanguage", {}).get("name", "Unknown")
         monitored = movie.get("monitored", True)
         
+        if DRY_RUN:
+            # Log environment variables, movie details, and actions in DRY_RUN mode
+            logger.debug(f"Environment Variables: LANGUAGE_FILTER={LANGUAGE_FILTER}, DRY_RUN={DRY_RUN}")
+            logger.debug(f"Checking movie: {movie['title']} - Language: {language}, Monitored: {monitored}")
+            logger.debug(f"Accepted Languages: {ACCEPTED_LANGUAGES}")
+        
         if movie["title"] not in MOVIE:
             if not monitored:
-                logger.info(f'Removing movie: {movie["title"]} - reason: unmonitored')
-                logger.info('--------------------------------------------------')
-                deletefiles = True
-                addImportExclusion = False
-                delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
+                if DRY_RUN:
+                    logger.info(f"Dry run: Would remove movie: {movie['title']} - reason: unmonitored")
+                else:
+                    deletefiles = True
+                    addImportExclusion = False
+                    delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
             else:
                 if LANGUAGE_FILTER:
                     if language not in ACCEPTED_LANGUAGES:
-                        logger.info(f'Removing movie: {movie["title"]} - reason: Incorrect language profile')
-                        logger.info('--------------------------------------------------')
-                        deletefiles = True
-                        addImportExclusion = False
-                        delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
+                        if DRY_RUN:
+                            logger.info(f"Dry run: Would remove movie: {movie['title']} - reason: Incorrect language profile ({language})")
+                        else:
+                            deletefiles = True
+                            addImportExclusion = False
+                            delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
 
     # Log movies that are skipped
     for movie in MOVIE:
