@@ -39,6 +39,17 @@ check_config_vars() {
     fi
 }
 
+# Ensure the /app/config directory exists
+setup_config_directory() {
+    if [ ! -d "/app/config" ]; then
+        log_info "/app/config directory not found. Creating it."
+        mkdir -p "/app/config"
+        chmod -R 777 "/app/config"
+    else
+        log_info "/app/config directory exists."
+    fi
+}
+
 # Update config.yml with environment variables
 update_config_yml() {
     envsubst < /app/config/config.template > /app/config/config.yml
@@ -52,6 +63,7 @@ setup_log_directory() {
 }
 
 # Main script execution
+setup_config_directory
 check_env_vars
 
 # Write or update config.yml with environment variables
