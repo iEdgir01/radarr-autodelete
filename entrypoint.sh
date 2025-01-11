@@ -43,17 +43,9 @@ check_env_vars() {
     if [ -z "$ACCEPTED_LANGUAGES" ]; then
         ACCEPTED_LANGUAGES=""
     fi
-
-    # Do not set defaults here; defer to config.yml if values are missing
-    if [ -z "$API_TIMEOUT" ]; then
-        API_TIMEOUT=""
-    fi
-    if [ -z "$STRIKE_COUNT" ]; then
-        STRIKE_COUNT=""
-    fi
 }
 
-# Validate and log errors for booleans and revert to defaults if invalid
+# Validate booleans for LANGUAGE_FILTER and DRY_RUN
 validate_booleans() {
     if [[ "$LANGUAGE_FILTER" != "true" && "$LANGUAGE_FILTER" != "false" ]]; then
         log_warning "LANGUAGE_FILTER is invalid: '$LANGUAGE_FILTER'. Reverting to default 'false'."
@@ -80,30 +72,9 @@ load_config_yml() {
                     continue
                 fi
 
-                # Special validation for numeric values (e.g., API_TIMEOUT)
-                case "$varname" in
-                    api_timeout)
-                        if ! [[ "$varvalue" =~ ^[0-9]+$ ]]; then
-                            log_warning "Invalid value for '$varname' in config.yml: '$varvalue' is not a number. Skipping."
-                            continue
-                        fi
-                        API_TIMEOUT="$varvalue"
-                        log_info "Using API_TIMEOUT from config.yml: $API_TIMEOUT"
-                        ;;
-                    strike_count)
-                        if ! [[ "$varvalue" =~ ^[0-9]+$ ]]; then
-                            log_warning "Invalid value for '$varname' in config.yml: '$varvalue' is not a number. Skipping."
-                            continue
-                        fi
-                        STRIKE_COUNT="$varvalue"
-                        log_info "Using STRIKE_COUNT from config.yml: $STRIKE_COUNT"
-                        ;;
-                    *)
-                        # If not API_TIMEOUT or STRIKE_COUNT, just set the variable
-                        eval "$varname=\"$varvalue\""
-                        log_info "Using $varname from config.yml: $varvalue"
-                        ;;
-                esac
+                # If not API_TIMEOUT or STRIKE_COUNT, just set the variable
+                eval "$varname=\"$varvalue\""
+                log_info "Using $varname from config.yml: $varvalue"
             fi
         done < <(sed 's/\r//g' /app/config/config.yml)
     else
@@ -124,16 +95,6 @@ setup_config_directory() {
 
 # Update config.yml with environment variables
 update_config_yml() {
-    # Apply defaults if missing and not found in config.yml
-    if [ -z "$API_TIMEOUT" ]; then
-        API_TIMEOUT="600"
-        log_info "Setting default API_TIMEOUT: $API_TIMEOUT"
-    fi
-    if [ -z "$STRIKE_COUNT" ]; then
-        STRIKE_COUNT="5"
-        log_info "Setting default STRIKE_COUNT: $STRIKE_COUNT"
-    fi
-
     # Convert booleans to lowercase for YAML format
     LANGUAGE_FILTER=$(echo "$LANGUAGE_FILTER" | tr '[:upper:]' '[:lower:]')
     DRY_RUN=$(echo "$DRY_RUN" | tr '[:upper:]' '[:lower:]')
@@ -147,17 +108,6 @@ update_config_yml() {
 setup_log_directory() {
     mkdir -p "/app/logs"
     chmod -R 777 "/app/logs"
-}
-
-# Ensure API_TIMEOUT and STRIKE_COUNT are integers
-validate_integers() {
-    if ! [[ "$API_TIMEOUT" =~ ^[0-9]+$ ]]; then
-        log_error "API_TIMEOUT must be an integer, but received: $API_TIMEOUT"
-    fi
-
-    if ! [[ "$STRIKE_COUNT" =~ ^[0-9]+$ ]]; then
-        log_error "STRIKE_COUNT must be an integer, but received: $STRIKE_COUNT"
-    fi
 }
 
 # Main script execution
@@ -174,9 +124,6 @@ load_config_yml
 if [ ${#missing_vars[@]} -ne 0 ]; then
     log_error "The following environment variables are missing: ${missing_vars[*]}"
 fi
-
-# Validate that API_TIMEOUT and STRIKE_COUNT are integers
-validate_integers
 
 # Write or update config.yml with environment variables
 update_config_yml
