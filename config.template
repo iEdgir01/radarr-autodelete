@@ -7,7 +7,7 @@ plex:
   token: "${PLEX_TOKEN}"
 
 language_filter: ${LANGUAGE_FILTER:-false}  # Use default value `false` if not specified
-accepted_languages: ${ACCEPTED_LANGUAGES:-""}  # Comma-separated list
+accepted_languages: [${ACCEPTED_LANGUAGES:-""}]
 
 movie_collection_name: "${MOVIE_COLLECTION_NAME}"
 dry_run: "${DRY_RUN:-false}"
