@@ -35,8 +35,8 @@ PLEX_URL=http://plex:port
 PLEX_TOKEN=your-plex-token
 
 #enable language filtering for accepted languages
-LANGUAGE_FILTER=true #true/false
-#language profiles of movies that will be kept - all else will be removed
+LANGUAGE_FILTER=true #true/false - Defaults to False
+#language profiles of movies that will be kept - all else will be removed - Defaults to an empty list. Enable LANGUAGE_FILTER and add your languages.
 ACCEPTED_LANGUAGES=English,Japanese,Korean
 
 #plex collection name of which all movies within, will be kept

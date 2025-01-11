@@ -6,8 +6,8 @@ plex:
   url: "${PLEX_URL}"
   token: "${PLEX_TOKEN}"
 
-language_filter: ${LANGUAGE_FILTER:-false}  # Use default value `false` if not specified
-accepted_languages: [${ACCEPTED_LANGUAGES:-""}]
+language_filter: ${LANGUAGE_FILTER}  # Use default value `false` if not specified
+accepted_languages: [${ACCEPTED_LANGUAGES}]
 
 movie_collection_name: "${MOVIE_COLLECTION_NAME}"
-dry_run: "${DRY_RUN:-false}"
+dry_run: "${DRY_RUN}"

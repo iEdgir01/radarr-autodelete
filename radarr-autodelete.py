@@ -48,8 +48,8 @@ def str_to_bool(var, value):
 
 # Get environment variable values and set to True/False
 try:
-    LANGUAGE_FILTER = str_to_bool('LANGUAGE_FILTER', os.getenv('LANGUAGE_FILTER'))
-    DRY_RUN = str_to_bool('DRY_RUN', os.getenv('DRY_RUN'))
+    LANGUAGE_FILTER = str_to_bool('LANGUAGE_FILTER', os.getenv('LANGUAGE_FILTER', 'false'))  # Default to 'false' if not set
+    DRY_RUN = str_to_bool('DRY_RUN', os.getenv('DRY_RUN', 'false'))  # Default to 'false' if not set
     logger.info(f"LANGUAGE_FILTER: {LANGUAGE_FILTER}, DRY_RUN: {DRY_RUN}")
 except ValueError as e:
     logger.error(str(e))
