@@ -28,13 +28,7 @@ LOG_DIR = '/app/logs'
 os.makedirs(LOG_DIR, exist_ok=True)
 log_file = os.path.join(LOG_DIR, 'radarr_autodelete.log')
 logger = logging.getLogger()
-
-# Set log level based on DRY_RUN
-if DRY_RUN:
-    logger.setLevel(logging.DEBUG)
-else:
-    logger.setLevel(logging.INFO)
-
+logger.setLevel(logging.INFO)
 file_handler = logging.FileHandler(log_file)
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
 logger.addHandler(file_handler)
@@ -58,7 +52,8 @@ try:
     DRY_RUN = str_to_bool('DRY_RUN', os.getenv('DRY_RUN', 'false'))  # Default to 'false' if not set
     # Log DRY_RUN values right after processing the environment variables
     if DRY_RUN:
-        logger.info(f"Environment Variables - LANGUAGE_FILTER: {LANGUAGE_FILTER}, DRY_RUN: {DRY_RUN}")
+        logger.setLevel(logging.DEBUG)
+        logger.debug(f"Environment Variables - LANGUAGE_FILTER: {LANGUAGE_FILTER}, DRY_RUN: {DRY_RUN}")
 except ValueError as e:
     logger.error(str(e))
 
@@ -96,7 +91,7 @@ def get(endpoint: str, extra_params: dict):
 
 def delete(endpoint: str, extra_params: dict):
     if DRY_RUN:
-        logger.info(f'Dry run: Would delete endpoint {endpoint} with params {extra_params}')
+        logger.debug(f'Dry run: Would delete endpoint {endpoint} with params {extra_params}')
         logger.debug(f'Detailed delete parameters: {extra_params}')
     else:
         params = {'apikey': RADARR_API_KEY}
@@ -134,8 +129,8 @@ try:
         if movie["title"] not in MOVIE:
             if not monitored:
                 if DRY_RUN:
-                    logger.info(f"Dry run: Would remove movie: {movie['title']} - reason: unmonitored")
-                    logger.info('--------------------------------------------------')
+                    logger.debug(f"Dry run: Would remove movie: {movie['title']} - reason: unmonitored")
+                    logger.debug('--------------------------------------------------')
                 else:
                     logger.info(f'Removing movie: {movie["title"]} - reason: unmonitored')
                     logger.info('--------------------------------------------------')
@@ -146,10 +141,10 @@ try:
                 if LANGUAGE_FILTER:
                     if language not in ACCEPTED_LANGUAGES:
                         if DRY_RUN:
-                            logger.info(f"Dry run: Would remove movie: {movie['title']} - reason: Incorrect language profile ({language})\n"
+                            logger.debug(f"Dry run: Would remove movie: {movie['title']} - reason: Incorrect language profile ({language})\n"
                                         f" language filter: {LANGUAGE_FILTER}\n"
                                         f" accepted_languages ({ACCEPTED_LANGUAGES})")
-                            logger.info('--------------------------------------------------')
+                            logger.debug('--------------------------------------------------')
                         else: 
                             logger.info(f'Removing movie: {movie["title"]} - reason: Incorrect language profile')
                             logger.info('--------------------------------------------------')
