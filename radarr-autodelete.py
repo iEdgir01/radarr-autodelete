@@ -69,6 +69,7 @@ if DRY_RUN:
     logger.debug(f"Plex URL: {PLEX_URL}")
     logger.debug(f"Plex TOKEN: {PLEX_TOKEN}")
     logger.debug(f"Collection Name: {COLLECTION_NAME}")
+    logger.debug('--------------------------------------------------')
 
 # Configure Radarr API connection
 API_EXTENSION = '/api/v3/'
@@ -124,15 +125,14 @@ try:
         language = movie.get("originalLanguage", {}).get("name", "Unknown")
         monitored = movie.get("monitored", True)
         
-        if DRY_RUN:
-            # Log environment variables, movie details, and actions in DRY_RUN mode
-            logger.debug(f"Checking movie: {movie['title']} - Language: {language}, Monitored: {monitored}")
-        
         if movie["title"] not in MOVIE:
             if not monitored:
                 if DRY_RUN:
                     logger.info(f"Dry run: Would remove movie: {movie['title']} - reason: unmonitored")
+                    logger.info('--------------------------------------------------')
                 else:
+                    logger.info(f'Removing movie: {movie["title"]} - reason: unmonitored')
+                    logger.info('--------------------------------------------------')
                     deletefiles = True
                     addImportExclusion = False
                     delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
@@ -143,7 +143,10 @@ try:
                             logger.info(f"Dry run: Would remove movie: {movie['title']} - reason: Incorrect language profile ({language})\n"
                                         f" language filter: {LANGUAGE_FILTER}\n"
                                         f" accepted_languages ({ACCEPTED_LANGUAGES})")
+                            logger.info('--------------------------------------------------')
                         else: 
+                            logger.info(f'Removing movie: {movie["title"]} - reason: Incorrect language profile')
+                            logger.info('--------------------------------------------------')
                             deletefiles = True
                             addImportExclusion = False
                             delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
