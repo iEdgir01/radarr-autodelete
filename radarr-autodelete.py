@@ -19,7 +19,7 @@ RADARR_URL = config['radarr']['url']
 RADARR_API_KEY = config['radarr']['api_key']
 PLEX_URL = config['plex']['url']
 PLEX_TOKEN = config['plex']['token']
-ACCEPTED_LANGUAGES = config.get('accepted_languages', [])
+ACCEPTED_LANGUAGES = config['accepted_languages']
 COLLECTION_NAME = config['movie_collection_name']
 
 LOG_DIR = '/app/logs'
