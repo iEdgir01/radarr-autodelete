@@ -50,12 +50,25 @@ def str_to_bool(var, value):
 try:
     LANGUAGE_FILTER = str_to_bool('LANGUAGE_FILTER', os.getenv('LANGUAGE_FILTER', 'false'))  # Default to 'false' if not set
     DRY_RUN = str_to_bool('DRY_RUN', os.getenv('DRY_RUN', 'false'))  # Default to 'false' if not set
-    logger.info(f"LANGUAGE_FILTER: {LANGUAGE_FILTER}, DRY_RUN: {DRY_RUN}")
+    # Log DRY_RUN values right after processing the environment variables
+    if DRY_RUN:
+        logger.info(f"Environment Variables - LANGUAGE_FILTER: {LANGUAGE_FILTER}, DRY_RUN: {DRY_RUN}")
 except ValueError as e:
     logger.error(str(e))
 
 # Log script start
 logger.info('Script started.')
+
+# Log DRY_RUN details before execution begins
+if DRY_RUN:
+    logger.info("------ DRY_RUN Mode ------")
+    logger.debug(f"LANGUAGE_FILTER: {LANGUAGE_FILTER}")
+    logger.debug(f"ACCEPTED_LANGUAGES: {ACCEPTED_LANGUAGES}")
+    logger.debug(f"Radarr API URL: {RADARR_URL}")
+    logger.debug(f"Radarr API KEY: {RADARR_API_KEY}")
+    logger.debug(f"Plex URL: {PLEX_URL}")
+    logger.debug(f"Plex TOKEN: {PLEX_TOKEN}")
+    logger.debug(f"Collection Name: {COLLECTION_NAME}")
 
 # Configure Radarr API connection
 API_EXTENSION = '/api/v3/'
@@ -113,9 +126,7 @@ try:
         
         if DRY_RUN:
             # Log environment variables, movie details, and actions in DRY_RUN mode
-            logger.debug(f"Environment Variables: LANGUAGE_FILTER={LANGUAGE_FILTER}, DRY_RUN={DRY_RUN}")
             logger.debug(f"Checking movie: {movie['title']} - Language: {language}, Monitored: {monitored}")
-            logger.debug(f"Accepted Languages: {ACCEPTED_LANGUAGES}")
         
         if movie["title"] not in MOVIE:
             if not monitored:
@@ -129,8 +140,10 @@ try:
                 if LANGUAGE_FILTER:
                     if language not in ACCEPTED_LANGUAGES:
                         if DRY_RUN:
-                            logger.info(f"Dry run: Would remove movie: {movie['title']} - reason: Incorrect language profile ({language})")
-                        else:
+                            logger.info(f"Dry run: Would remove movie: {movie['title']} - reason: Incorrect language profile ({language})\n"
+                                        f" language filter: {LANGUAGE_FILTER}\n"
+                                        f" accepted_languages ({ACCEPTED_LANGUAGES})")
+                        else: 
                             deletefiles = True
                             addImportExclusion = False
                             delete(f'movie/{movie["id"]}', {'deleteFiles': deletefiles, 'addImportExclusion': addImportExclusion})
