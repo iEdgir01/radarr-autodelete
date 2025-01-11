@@ -22,7 +22,8 @@ I have created [a dedicated Docker image](https://hub.docker.com/r/iedgir01/rada
 ## Testing
 Use `DRY_RUN=true` to run the python script without deleting anything - check the logs for the results. This is to confirm that your langugae profiles and watched indicators are working as expected.
 
-## `ENVIRONMENT_VARIABLES` Setup - this creates the config.yml values within /config from config.template.
+## `ENVIRONMENT_VARIABLES` Setup:
+this updates / creates the required `config.yml` from environment values.
 
 To configure the script add these ENVIROMENT_VARIABLES to the docker compose or edit the `config.template` file and save it as `config.yml`.
 the config.yml needs to be saved inside ``/path/to/your/radarr_autodelete/config``.
