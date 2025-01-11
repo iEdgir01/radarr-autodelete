@@ -28,7 +28,13 @@ LOG_DIR = '/app/logs'
 os.makedirs(LOG_DIR, exist_ok=True)
 log_file = os.path.join(LOG_DIR, 'radarr_autodelete.log')
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+
+# Set log level based on DRY_RUN
+if DRY_RUN:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
+
 file_handler = logging.FileHandler(log_file)
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
 logger.addHandler(file_handler)
