@@ -1,21 +1,19 @@
 #!/bin/bash
 
-# Function to log errors
+# Logging functions
 log_error() {
     echo "ERROR: $1" | tee -a /app/logs/entrypoint.log
 }
 
-# Function to log info messages
 log_info() {
     echo "INFO: $1" | tee -a /app/logs/entrypoint.log
 }
 
-# Function to log warnings
 log_warning() {
     echo "WARNING: $1" | tee -a /app/logs/entrypoint.log
 }
 
-# Function to check if a value is "true" or "false"
+# Validate boolean values
 validate_boolean() {
     if [[ "$1" != "true" && "$1" != "false" ]]; then
         log_error "$2 must be either 'true' or 'false', but received: $1. Reverting to default."
@@ -26,60 +24,23 @@ validate_boolean() {
 # Initialize an array to hold missing environment variables
 missing_vars=()
 
-# Check for required environment variables and optional defaults
+# Check for required environment variables and set optional defaults
 check_env_vars() {
     [ -z "$RADARR_URL" ] && missing_vars+=("RADARR_URL")
     [ -z "$RADARR_API_KEY" ] && missing_vars+=("RADARR_API_KEY")
     [ -z "$PLEX_URL" ] && missing_vars+=("PLEX_URL")
     [ -z "$PLEX_TOKEN" ] && missing_vars+=("PLEX_TOKEN")
 
-    # Optional config vars
-    if [ -z "$LANGUAGE_FILTER" ]; then
-        LANGUAGE_FILTER="false"  # Default to false if not set
-    fi
-    if [ -z "$DRY_RUN" ]; then
-        DRY_RUN="false"  # Default to false if not set
-    fi
-    if [ -z "$ACCEPTED_LANGUAGES" ]; then
-        ACCEPTED_LANGUAGES=""
-    fi
+    # Optional config vars with defaults
+    : "${LANGUAGE_FILTER:=false}"
+    : "${DRY_RUN:=false}"
+    : "${ACCEPTED_LANGUAGES:=}"
 }
 
-# Validate booleans for LANGUAGE_FILTER and DRY_RUN
+# Validate boolean environment variables
 validate_booleans() {
-    if [[ "$LANGUAGE_FILTER" != "true" && "$LANGUAGE_FILTER" != "false" ]]; then
-        log_warning "LANGUAGE_FILTER is invalid: '$LANGUAGE_FILTER'. Reverting to default 'false'."
-        LANGUAGE_FILTER="false"
-    fi
-    if [[ "$DRY_RUN" != "true" && "$DRY_RUN" != "false" ]]; then
-        log_warning "DRY_RUN is invalid: '$DRY_RUN'. Reverting to default 'false'."
-        DRY_RUN="false"
-    fi
-}
-
-# Load configuration from config.yml if it exists
-load_config_yml() {
-    if [ -f /app/config/config.yml ]; then
-        log_info "Loading configuration from config.yml"
-        while IFS= read -r line || [ -n "$line" ]; do
-            if [[ $line =~ ^[^#]*:[^#]*$ ]]; then
-                varname=$(echo "$line" | cut -d ':' -f 1 | tr -d '[:space:]')
-                varvalue=$(echo "$line" | cut -d ':' -f 2- | tr -d '[:space:]')
-
-                # Validate and handle empty or invalid values
-                if [ -z "$varvalue" ]; then
-                    log_warning "Value for '$varname' is empty in config.yml. Skipping."
-                    continue
-                fi
-
-                # If not API_TIMEOUT or STRIKE_COUNT, just set the variable
-                eval "$varname=\"$varvalue\""
-                log_info "Using $varname from config.yml: $varvalue"
-            fi
-        done < <(sed 's/\r//g' /app/config/config.yml)
-    else
-        log_info "config.yml not found. Proceeding with environment variables only."
-    fi
+    validate_boolean "$LANGUAGE_FILTER" "LANGUAGE_FILTER"
+    validate_boolean "$DRY_RUN" "DRY_RUN"
 }
 
 # Ensure the /app/config directory exists
@@ -93,13 +54,80 @@ setup_config_directory() {
     fi
 }
 
+# Load configuration from config.yml if it exists
+load_config_yml() {
+    if [ -f /app/config/config.yml ]; then
+        log_info "Loading configuration from config.yml"
+        current_section=""
+        buffer=""
+
+        while IFS= read -r line || [ -n "$line" ]; do
+            line="${line#"${line%%[![:space:]]*}"}"  # Remove leading whitespace
+            line="${line%"${line##*[![:space:]]}"}"  # Remove trailing whitespace
+
+            # Skip empty lines and comments
+            if [[ -z "$line" || "$line" =~ ^# ]]; then
+                continue
+            fi
+
+            # Check for section headers
+            if [[ $line =~ ^[^:]+:[[:space:]]*$ ]]; then
+                buffer="$line"
+                continue
+            fi
+
+            if [[ -n "$buffer" && $line =~ ^[[:space:]]+[^:]+:[[:space:]]* ]]; then
+                current_section="${buffer%%:*}"
+                current_section="${current_section//[:space:]/}"
+                buffer=""
+                continue
+            fi
+
+            if [[ -n "$buffer" ]]; then
+                buffer=""
+                current_section=""
+            fi
+
+            if [[ ! "$line" =~ ^[[:space:]]+ ]]; then
+                current_section=""
+            fi
+
+            # Handle key-value pairs
+            if [[ $line =~ ^[^:]+:[^:]*$ ]]; then
+                varname="${line%%:*}"
+                varvalue="${line#*:}"
+                varname="${varname//[:space:]/}"
+                varvalue="${varvalue//[:space:]/}"
+
+                if [ -n "$current_section" ]; then
+                    varname="${current_section}_${varname}"
+                fi
+
+                # Prioritize environment variable value over config file value
+                env_value=$(printenv "$varname")
+                if [ -n "$env_value" ]; then
+                    varvalue="$env_value"
+                fi
+
+                if [ -z "$varvalue" ]; then
+                    log_warning "Value for '$varname' is empty in config.yml and no environment variable found. Skipping."
+                    continue
+                fi
+
+                eval "$varname=\"$varvalue\""
+                log_info "Using $varname: $varvalue"
+            fi
+        done < /app/config/config.yml
+    else
+        log_info "config.yml not found. Proceeding with environment variables only."
+    fi
+}
+
 # Update config.yml with environment variables
 update_config_yml() {
-    # Convert booleans to lowercase for YAML format
-    LANGUAGE_FILTER=$(echo "$LANGUAGE_FILTER" | tr '[:upper:]' '[:lower:]')
-    DRY_RUN=$(echo "$DRY_RUN" | tr '[:upper:]' '[:lower:]')
+    LANGUAGE_FILTER="${LANGUAGE_FILTER,,}"
+    DRY_RUN="${DRY_RUN,,}"
 
-    # Write to config.yml
     envsubst < /app/config/config.template > /app/config/config.yml
     log_info "Environment variables have been written to config.yml"
 }
@@ -110,25 +138,28 @@ setup_log_directory() {
     chmod -R 777 "/app/logs"
 }
 
+# Check for missing values (prioritize environment variables over config.yml)
+check_missing_values() {
+    for var in "${missing_vars[@]}"; do
+        env_value=$(printenv "$var")
+        if [ -z "$env_value" ] && [ -z "$(eval echo \$$var)" ]; then
+            log_error "$var is required but not set in the environment or config.yml. Exiting."
+            exit 1
+        fi
+    done
+}
+
 # Main script execution
 setup_config_directory
 check_env_vars
-
-# Validate booleans for LANGUAGE_FILTER and DRY_RUN
 validate_booleans
-
-# Load config.yml if it exists
 load_config_yml
-
-# Log and exit if any missing required environment variables are found
+# Log and continue if any missing required environment variables are found
 if [ ${#missing_vars[@]} -ne 0 ]; then
-    log_error "The following environment variables are missing: ${missing_vars[*]}"
+    log_warning "The following environment variables are missing: ${missing_vars[*]}"
 fi
-
-# Write or update config.yml with environment variables
+check_missing_values
 update_config_yml
-
 setup_log_directory
 
-# Execute the main application
 exec "$@"
