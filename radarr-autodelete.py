@@ -53,7 +53,6 @@ try:
     # Log DRY_RUN values right after processing the environment variables
     if DRY_RUN:
         logger.setLevel(logging.DEBUG)
-        logger.debug(f"Environment Variables - LANGUAGE_FILTER: {LANGUAGE_FILTER}, DRY_RUN: {DRY_RUN}")
 except ValueError as e:
     logger.error(str(e))
 
