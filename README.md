@@ -23,10 +23,7 @@ I have created [a dedicated Docker image](https://hub.docker.com/r/iedgir01/rada
 Use `DRY_RUN=true` to run the python script without deleting anything - check the logs for the results. This is to confirm that your langugae profiles and watched indicators are working as expected.
 
 ## `ENVIRONMENT_VARIABLES` Setup:
-this updates / creates the required `config.yml` from environment values.
-
-To configure the script add these ENVIROMENT_VARIABLES to the docker compose or edit the `config.template` file and save it as `config.yml`.
-the config.yml needs to be saved inside ``/path/to/your/radarr_autodelete/config``.
+To configure the script add these ENVIROMENT_VARIABLES to the docker compose.
 
 ```bash
 #basic config !!REQUIRED!!
@@ -35,13 +32,14 @@ RADARR_API_KEY=your-radarr-api-key
 PLEX_URL=http://plex:port
 PLEX_TOKEN=your-plex-token
 
-#enable language filtering for accepted languages
+#language profiles of movies that will be kept
+#enable language filtering to enable this control
 LANGUAGE_FILTER=true #true/false - Defaults to False
-#language profiles of movies that will be kept - all else will be removed - Defaults to an empty list. Enable LANGUAGE_FILTER and add your languages.
-ACCEPTED_LANGUAGES=English,Japanese,Korean
+#add your languages to accepted languages - all else will be removed.
+ACCEPTED_LANGUAGES=English,Japanese,Korean #if not set, defaults to an empty list
 
 #plex collection name of which all movies within, will be kept
-MOVIE_COLLECTION_NAME=plex collection name
+MOVIE_COLLECTION_NAME=plex-collection-name
 
 #Dry Run - Testing
 DRY_RUN=false #true/false

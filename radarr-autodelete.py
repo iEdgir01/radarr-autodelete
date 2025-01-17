@@ -1,4 +1,3 @@
-import yaml
 import logging
 import os
 import sys
@@ -9,22 +8,8 @@ from plexapi.exceptions import PlexApiException
 from urllib.parse import urljoin
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-# Load configuration from config.yml
-config_file = os.path.join(os.getcwd(), 'config', 'config.yml')
-with open(config_file, 'r') as file:
-    config = yaml.safe_load(file)
-
-# Extract configuration values
-RADARR_URL = config['radarr']['url']
-RADARR_API_KEY = config['radarr']['api_key']
-PLEX_URL = config['plex']['url']
-PLEX_TOKEN = config['plex']['token']
-ACCEPTED_LANGUAGES = config['accepted_languages']
-COLLECTION_NAME = config['movie_collection_name']
-
+# Logging setup
 LOG_DIR = '/app/logs'
-
-# Configure logging
 os.makedirs(LOG_DIR, exist_ok=True)
 log_file = os.path.join(LOG_DIR, 'radarr_autodelete.log')
 logger = logging.getLogger()
@@ -46,6 +31,14 @@ def str_to_bool(var, value):
         logger.error(f"Invalid value for {var} boolean conversion: {value}. Expected 'true' or 'false'.")
         raise ValueError(f"Invalid value for {var}: {value}. Expected 'true' or 'false'.")
 
+# Extract configuration values from environment variables without defaults
+RADARR_URL = os.getenv('RADARR_URL')
+RADARR_API_KEY = os.getenv('RADARR_API_KEY')
+PLEX_URL = os.getenv('PLEX_URL')
+PLEX_TOKEN = os.getenv('PLEX_TOKEN')
+ACCEPTED_LANGUAGES = os.getenv('ACCEPTED_LANGUAGES', '').split(',')
+COLLECTION_NAME = os.getenv('MOVIE_COLLECTION_NAME')
+
 # Get environment variable values and set to True/False
 try:
     LANGUAGE_FILTER = str_to_bool('LANGUAGE_FILTER', os.getenv('LANGUAGE_FILTER', 'false'))  # Default to 'false' if not set
@@ -56,10 +49,8 @@ try:
 except ValueError as e:
     logger.error(str(e))
 
-# Log script start
+# Log script start and environment variables
 logger.info('Script started.')
-
-# Log DRY_RUN details before execution begins
 if DRY_RUN:
     logger.info("------ DRY_RUN Mode ------")
     logger.debug(f"LANGUAGE_FILTER: {LANGUAGE_FILTER}")
