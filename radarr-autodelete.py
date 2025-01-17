@@ -19,6 +19,7 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]
 logger.addHandler(file_handler)
 stream_handler = logging.StreamHandler(sys.stdout)
 stream_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
+sys.stdout.flush()  # Ensure stdout is flushed immediately
 logger.addHandler(stream_handler)
 
 # Convert environment variable to boolean
