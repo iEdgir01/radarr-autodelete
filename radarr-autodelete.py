@@ -106,6 +106,48 @@ try:
     logger.info('Checking Radarr service reachability...')
     movies = get('movie', {})
     logger.info('Radarr service is reachable. Proceeding with script execution.')
+    
+    # Step 1: Map watched Plex movies with last viewed dates
+watched_movies = {}
+logger.info("Checking Plex for watched movies...")
+try:
+    movies_section = plex.library.section('Movies')
+    for video in movies_section.all():
+        if video.isWatched and video.lastViewedAt:
+            watched_movies[video.title] = video.lastViewedAt
+    logger.info(f"Found {len(watched_movies)} watched movies with view dates in Plex.")
+except Exception as e:
+    logger.error(f"Error fetching watched movies from Plex: {str(e)}")
+
+# Step 2: Compare with Radarr 'added' dates and unmonitor if watched after download
+for movie in movies:
+    title = movie.get("title")
+    monitored = movie.get("monitored", True)
+    radarr_added = movie.get("added")  # e.g. '2024-03-04T19:21:17Z'
+
+    if monitored and title in watched_movies and radarr_added:
+        try:
+            added_dt = datetime.strptime(radarr_added, "%Y-%m-%dT%H:%M:%SZ")
+            viewed_dt = watched_movies[title]
+
+            if viewed_dt > added_dt:
+                if DRY_RUN:
+                    logger.debug(f"Dry run: Would unmonitor movie in Radarr: {title} — watched after it was added "
+                                f"(last viewed: {viewed_dt}, added: {added_dt})")
+                    logger.debug('--------------------------------------------------')
+                else:
+                    movie['monitored'] = False
+                    update_url = f'movie/{movie["id"]}'
+                    response = requests.put(
+                        urljoin(API_HOST, update_url),
+                        params={'apikey': RADARR_API_KEY},
+                        json=movie
+                    )
+                    response.raise_for_status()
+                    logger.info(f"Unmonitored movie in Radarr: {title} — watched after it was added")
+                    logger.info('--------------------------------------------------')
+        except Exception as e:
+            logger.warning(f"Failed to process movie '{title}' for unmonitoring: {e}")
 
     # Get the list of movies from Plex that should not be deleted
     movies_section = plex.library.section('Movies')

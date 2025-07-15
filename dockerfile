@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster
+FROM python:3.9-slim
 
 # Install gettext package for envsubst
 RUN apt-get update && apt-get install -y gettext && apt-get clean
