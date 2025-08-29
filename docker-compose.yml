@@ -11,6 +11,7 @@ services:
       - RADARR_API_KEY=your_radarr_api
       - PLEX_URL=http://your_plex_url:port
       - PLEX_TOKEN=your_plex_token
+      - PLEX_USERNAME_FILTER=your_username #Optional, only needed for specific libraries if multiple exist and youw ant to exclude working with other watch history metrics.
       - LANGUAGE_FILTER=true #true/false for language filtering
       - ACCEPTED_LANGUAGES=English,Japanese,Korean 
       - MOVIE_COLLECTION_NAME=Your_PLex_Collection_To_Keep

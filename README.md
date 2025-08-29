@@ -35,11 +35,15 @@ To configure the script, add these `ENVIRONMENT_VARIABLES` to your Docker Compos
 RADARR_URL=http://radarr:port
 RADARR_API_KEY=your-radarr-api-key
 PLEX_URL=http://plex:port
+
+#Server token
+#can be obtained by following the below guide:
+#https://digiex.net/threads/plex-guide-step-by-step-getting-plex-token.15402/
 PLEX_TOKEN=your-plex-token
 
 # Optional: If you want to only target your specific Plex user watch history
-# This must be a user authentication token (not the server token)
-PLEX_USER_TOKEN=your-user-token
+# This must be an account username
+PLEX_USERNAME_FILTER=your_username
 
 # Language profiles of movies that will be kept
 # Enable language filtering to apply this control

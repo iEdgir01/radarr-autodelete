@@ -3,8 +3,7 @@ import os
 import sys
 import requests
 from datetime import datetime
-from plexapi.myplex import PlexServer
-from plexapi.server import PlexServer as RawPlexServer
+from plexapi.server import PlexServer
 from plexapi.exceptions import PlexApiException
 from urllib.parse import urljoin
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -36,7 +35,7 @@ RADARR_URL = os.getenv('RADARR_URL')
 RADARR_API_KEY = os.getenv('RADARR_API_KEY')
 PLEX_URL = os.getenv('PLEX_URL')
 PLEX_TOKEN = os.getenv('PLEX_TOKEN')
-PLEX_USER_TOKEN = os.getenv('PLEX_USER_TOKEN')
+PLEX_USERNAME_FILTER = os.getenv('PLEX_USERNAME_FILTER')
 ACCEPTED_LANGUAGES = os.getenv('ACCEPTED_LANGUAGES', '').split(',')
 COLLECTION_NAME = os.getenv('MOVIE_COLLECTION_NAME')
 
@@ -57,7 +56,7 @@ if DRY_RUN:
     logger.debug(f"Radarr API KEY: {RADARR_API_KEY}")
     logger.debug(f"Plex URL: {PLEX_URL}")
     logger.debug(f"Plex TOKEN: {PLEX_TOKEN}")
-    logger.debug(f"PLEX_USER_TOKEN: {PLEX_USER_TOKEN}")
+    logger.debug(f"PLEX_USERNAME_FILTER: {PLEX_USERNAME_FILTER}")
     logger.debug(f"Collection Name: {COLLECTION_NAME}")
     logger.debug('--------------------------------------------------')
 
@@ -101,33 +100,15 @@ try:
     watched_movies = {}
     logger.info("Checking Plex for watched movies...")
 
-    if PLEX_USER_TOKEN:
-        raw_server = RawPlexServer(PLEX_URL, PLEX_TOKEN)
-        account = raw_server.myPlexAccount()
-        user = account.account()
-        user_id = user.id
-
-        sessions = account.resources()
-        server = next((s for s in sessions if s.name == raw_server.friendlyName), None)
-        history_url = f"https://plex.tv/api/v2/user/{user_id}/history"
-        headers = {'X-Plex-Token': PLEX_USER_TOKEN}
-        params = {'type': 'movie', 'sort': 'viewedAt:desc', 'limit': 10000}
-        response = requests.get(history_url, headers=headers, params=params)
-        response.raise_for_status()
-        history = response.json()
-
-        for item in history:
-            title = item['metadata']['title']
-            viewed_at = datetime.fromtimestamp(item['viewedAt'])
+    history = plex.history(maxResults=10000)
+    for h in history:
+        if h.account and h.account.title == PLEX_USERNAME_FILTER:
+            title = h.title
+            viewed_at = h.viewedAt
             if title not in watched_movies or viewed_at > watched_movies[title]:
                 watched_movies[title] = viewed_at
-    else:
-        movies_section = plex.library.section('Movies')
-        for video in movies_section.all():
-            if video.isWatched and video.lastViewedAt:
-                watched_movies[video.title] = video.lastViewedAt
 
-    logger.info(f"Found {len(watched_movies)} watched movies.")
+    logger.info(f"Found {len(watched_movies)} watched movies for user {PLEX_USERNAME_FILTER}.")
 
     for movie in movies:
         title = movie.get("title")
