@@ -23,8 +23,8 @@ RADARR_API_KEY = os.getenv('RADARR_API_KEY')
 
 ACCEPTED_LANGUAGES = os.getenv('ACCEPTED_LANGUAGES', '').split(',')
 MOVIE_COLLECTION_NAME = os.getenv('MOVIE_COLLECTION_NAME')
-LANGUAGE_FILTER = os.getenv('LANGUAGE_FILTER')
-DRY_RUN = os.getenv('DRY_RUN')
+DRY_RUN = str_to_bool('DRY_RUN', os.getenv('DRY_RUN', 'false'))
+LANGUAGE_FILTER = str_to_bool('LANGUAGE_FILTER', os.getenv('LANGUAGE_FILTER', 'false'))
 
 # --------------------------
 # Logging setup
