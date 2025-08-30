@@ -11,7 +11,6 @@
 - Keeps movies in a specified Plex collection to avoid deletion (defined by `MOVIE_COLLECTION_NAME`).
   - i.e. `MOVIE_COLLECTION_NAME=Keep`
 - Unmonitors movies in Radarr if they've been watched in Plex *after* being downloaded.
-- Supports Plex user-specific watched history via optional `PLEX_USER_TOKEN`.
 - Logs all actions for easy tracking in `/app/logs`.
 
 ## Usage
@@ -35,15 +34,11 @@ To configure the script, add these `ENVIRONMENT_VARIABLES` to your Docker Compos
 RADARR_URL=http://radarr:port
 RADARR_API_KEY=your-radarr-api-key
 PLEX_URL=http://plex:port
-
-#Server token
 #can be obtained by following the below guide:
 #https://digiex.net/threads/plex-guide-step-by-step-getting-plex-token.15402/
 PLEX_TOKEN=your-plex-token
-
-# Optional: If you want to only target your specific Plex user watch history
-# This must be an account username
-PLEX_USERNAME_FILTER=your_username
+PLEX_USERNAME=your-plex-username
+PLEX_PASSWORD=your-plex-password
 
 # Language profiles of movies that will be kept
 # Enable language filtering to apply this control
