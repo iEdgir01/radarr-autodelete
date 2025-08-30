@@ -154,13 +154,13 @@ try:
                     logger.debug(f"Dry run: Would remove movie: {movie['title']} - reason: unmonitored")
                 else:
                     logger.info(f'Removing movie: {movie["title"]} - reason: unmonitored')
-                    delete(f'movie/{movie["id"]}', {'deleteFiles': True, 'addImportExclusion': False})
+                    delete(f"movie/{movie['id']}", {'deleteFiles': True, 'addImportExclusion': False})
             elif LANGUAGE_FILTER and language_name not in ACCEPTED_LANGUAGES:
                 if DRY_RUN:
                     logger.debug(f"Dry run: Would remove movie: {movie['title']} - language not accepted ({language_name})")
                 else:
                     logger.info(f"Removing movie: {movie['title']} - language not accepted")
-                    delete(f'movie/{movie['id']}', {'deleteFiles': True, 'addImportExclusion': False})
+                    delete(f"movie/{movie['id']}", {'deleteFiles': True, 'addImportExclusion': False})
 
     logger.info("------ Logging skipped movies ------")
     for movie in MOVIE_COLLECTION:
