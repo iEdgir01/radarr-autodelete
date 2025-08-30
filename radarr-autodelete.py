@@ -23,8 +23,8 @@ RADARR_API_KEY = os.getenv('RADARR_API_KEY')
 
 ACCEPTED_LANGUAGES = os.getenv('ACCEPTED_LANGUAGES', '').split(',')
 MOVIE_COLLECTION_NAME = os.getenv('MOVIE_COLLECTION_NAME')
-LANGUAGE_FILTER = False
-DRY_RUN = True  # Set to False to actually perform deletions/unmonitoring
+LANGUAGE_FILTER = os.getenv('LANGUAGE_FILTER')
+DRY_RUN = os.getenv('DRY_RUN')
 
 # --------------------------
 # Logging setup
