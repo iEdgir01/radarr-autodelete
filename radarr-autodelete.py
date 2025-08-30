@@ -1,4 +1,3 @@
-
 import logging
 import os
 import sys
@@ -9,6 +8,7 @@ from plexapi.server import PlexServer
 from plexapi.exceptions import PlexApiException
 from urllib.parse import urljoin
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from helper_functions import str_to_bool
 
 # --------------------------
 # Configuration
@@ -46,18 +46,6 @@ if DRY_RUN:
     logger.debug("====== DRY_RUN Mode Enabled ======")
 
 logger.info("====== Script Started ======")
-
-# --------------------------
-# Helper functions
-# --------------------------
-def str_to_bool(var, value):
-    if value.lower() == 'true':
-        return True
-    elif value.lower() == 'false':
-        return False
-    else:
-        logger.error(f"Invalid value for {var}: {value}")
-        raise ValueError(f"Invalid value for {var}")
 
 API_EXTENSION = '/api/v3/'
 API_HOST = urljoin(RADARR_URL, API_EXTENSION)
