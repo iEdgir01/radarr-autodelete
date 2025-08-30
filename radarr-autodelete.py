@@ -1,27 +1,55 @@
+
 import logging
 import os
 import sys
 import requests
 from datetime import datetime
+from plexapi.myplex import MyPlexAccount
 from plexapi.server import PlexServer
 from plexapi.exceptions import PlexApiException
 from urllib.parse import urljoin
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
+# --------------------------
+# Configuration
+# --------------------------
+PLEX_USERNAME = os.getenv('PLEX_USERNAME')
+PLEX_PASSWORD = os.getenv('PLEX_PASSWORD')
+PLEX_URL = os.getenv('PLEX_URL')
+PLEX_TOKEN = os.getenv('PLEX_TOKEN')
+
+RADARR_URL = os.getenv('RADARR_URL')
+RADARR_API_KEY = os.getenv('RADARR_API_KEY')
+
+ACCEPTED_LANGUAGES = os.getenv('ACCEPTED_LANGUAGES', '').split(',')
+MOVIE_COLLECTION_NAME = os.getenv('MOVIE_COLLECTION_NAME')
+LANGUAGE_FILTER = False
+DRY_RUN = True  # Set to False to actually perform deletions/unmonitoring
+
+# --------------------------
 # Logging setup
+# --------------------------
 LOG_DIR = '/app/logs'
 os.makedirs(LOG_DIR, exist_ok=True)
 log_file = os.path.join(LOG_DIR, 'radarr_autodelete.log')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 file_handler = logging.FileHandler(log_file)
-file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 logger.addHandler(file_handler)
 stream_handler = logging.StreamHandler(sys.stdout)
-stream_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s[%(name)s]:%(message)s'))
-sys.stdout.flush()
+stream_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 logger.addHandler(stream_handler)
 
+if DRY_RUN:
+    logger.setLevel(logging.DEBUG)
+    logger.debug("====== DRY_RUN Mode Enabled ======")
+
+logger.info("====== Script Started ======")
+
+# --------------------------
+# Helper functions
+# --------------------------
 def str_to_bool(var, value):
     if value.lower() == 'true':
         return True
@@ -31,39 +59,9 @@ def str_to_bool(var, value):
         logger.error(f"Invalid value for {var}: {value}")
         raise ValueError(f"Invalid value for {var}")
 
-RADARR_URL = os.getenv('RADARR_URL')
-RADARR_API_KEY = os.getenv('RADARR_API_KEY')
-PLEX_URL = os.getenv('PLEX_URL')
-PLEX_TOKEN = os.getenv('PLEX_TOKEN')
-PLEX_USERNAME_FILTER = os.getenv('PLEX_USERNAME_FILTER')
-ACCEPTED_LANGUAGES = os.getenv('ACCEPTED_LANGUAGES', '').split(',')
-COLLECTION_NAME = os.getenv('MOVIE_COLLECTION_NAME')
-
-try:
-    LANGUAGE_FILTER = str_to_bool('LANGUAGE_FILTER', os.getenv('LANGUAGE_FILTER', 'false'))
-    DRY_RUN = str_to_bool('DRY_RUN', os.getenv('DRY_RUN', 'false'))
-    if DRY_RUN:
-        logger.setLevel(logging.DEBUG)
-except ValueError as e:
-    logger.error(str(e))
-
-logger.info('Script started.')
-if DRY_RUN:
-    logger.info("------ DRY_RUN Mode ------")
-    logger.debug(f"LANGUAGE_FILTER: {LANGUAGE_FILTER}")
-    logger.debug(f"ACCEPTED_LANGUAGES: {ACCEPTED_LANGUAGES}")
-    logger.debug(f"Radarr API URL: {RADARR_URL}")
-    logger.debug(f"Radarr API KEY: {RADARR_API_KEY}")
-    logger.debug(f"Plex URL: {PLEX_URL}")
-    logger.debug(f"Plex TOKEN: {PLEX_TOKEN}")
-    logger.debug(f"PLEX_USERNAME_FILTER: {PLEX_USERNAME_FILTER}")
-    logger.debug(f"Collection Name: {COLLECTION_NAME}")
-    logger.debug('--------------------------------------------------')
-
 API_EXTENSION = '/api/v3/'
 API_HOST = urljoin(RADARR_URL, API_EXTENSION)
-logger.info(f'API URL: {API_HOST}')
-MOVIE = []
+MOVIE_COLLECTION = []
 
 @retry(stop=stop_after_attempt(10), wait=wait_exponential(multiplier=1, min=4, max=60),
        retry=retry_if_exception_type((requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError, PlexApiException)))
@@ -76,7 +74,7 @@ def get(endpoint: str, extra_params: dict):
 
 def delete(endpoint: str, extra_params: dict):
     if DRY_RUN:
-        logger.debug(f'Dry run: Would delete endpoint {endpoint} with params {extra_params}')
+        logger.debug(f"Dry run: Would delete endpoint {endpoint} with params {extra_params}")
     else:
         params = {'apikey': RADARR_API_KEY}
         params.update(extra_params)
@@ -88,28 +86,32 @@ def delete(endpoint: str, extra_params: dict):
 def connect_to_plex(plex_url, plex_token):
     return PlexServer(plex_url, plex_token)
 
+# --------------------------
+# Main script
+# --------------------------
 try:
-    logger.info('Checking Plex service reachability...')
+    logger.info("------ Signing in to Plex account ------")
+    plex_account = MyPlexAccount(PLEX_USERNAME, PLEX_PASSWORD)
+    PLEX_USER_TOKEN = plex_account.authToken
+    logger.info(f"Signed in as {plex_account.username}, user token obtained")
+
+    logger.info("------ Connecting to Plex server ------")
     plex = connect_to_plex(PLEX_URL, PLEX_TOKEN)
-    logger.info('Plex service is reachable.')
+    logger.info(f"Connected to Plex server: {plex.friendlyName}")
 
-    logger.info('Checking Radarr service reachability...')
+    logger.info("------ Checking Radarr service ------")
     movies = get('movie', {})
-    logger.info('Radarr service is reachable.')
+    logger.info("Radarr service is reachable.")
 
+    logger.info("------ Fetching watched movies from Plex ------")
     watched_movies = {}
-    logger.info("Checking Plex for watched movies...")
+    movies_section = plex.library.section('Movies')
+    for movie in movies_section.all():
+        if movie.isWatched and movie.lastViewedAt:
+            watched_movies[movie.title] = movie.lastViewedAt
+    logger.info(f"Found {len(watched_movies)} watched movies.")
 
-    history = plex.history(maxResults=10000)
-    for h in history:
-        if h.account and h.account.title == PLEX_USERNAME_FILTER:
-            title = h.title
-            viewed_at = h.viewedAt
-            if title not in watched_movies or viewed_at > watched_movies[title]:
-                watched_movies[title] = viewed_at
-
-    logger.info(f"Found {len(watched_movies)} watched movies for user {PLEX_USERNAME_FILTER}.")
-
+    logger.info("------ Unmonitoring watched movies in Radarr ------")
     for movie in movies:
         title = movie.get("title")
         monitored = movie.get("monitored", True)
@@ -136,33 +138,36 @@ try:
             except Exception as e:
                 logger.warning(f"Failed to process movie '{title}' for unmonitoring: {e}")
 
-    movies_section = plex.library.section('Movies')
-    for video in movies_section.search(collection=COLLECTION_NAME):
-        MOVIE.append(video.title)
+    logger.info("------ Collecting movies in Plex collection ------")
+    for video in movies_section.search(collection=MOVIE_COLLECTION_NAME):
+        MOVIE_COLLECTION.append(video.title)
 
+    logger.info("------ Removing movies not in collection or language filter ------")
     for movie in movies:
-        language = movie.get("originalLanguage", {}).get("name", "Unknown")
+        language_info = movie.get("originalLanguage", {})
+        language_name = language_info.get("name", "Unknown")
         monitored = movie.get("monitored", True)
 
-        if movie["title"] not in MOVIE:
+        if movie["title"] not in MOVIE_COLLECTION:
             if not monitored:
                 if DRY_RUN:
                     logger.debug(f"Dry run: Would remove movie: {movie['title']} - reason: unmonitored")
                 else:
                     logger.info(f'Removing movie: {movie["title"]} - reason: unmonitored')
                     delete(f'movie/{movie["id"]}', {'deleteFiles': True, 'addImportExclusion': False})
-            elif LANGUAGE_FILTER and language not in ACCEPTED_LANGUAGES:
+            elif LANGUAGE_FILTER and language_name not in ACCEPTED_LANGUAGES:
                 if DRY_RUN:
-                    logger.debug(f"Dry run: Would remove movie: {movie['title']} - language not accepted ({language})")
+                    logger.debug(f"Dry run: Would remove movie: {movie['title']} - language not accepted ({language_name})")
                 else:
                     logger.info(f"Removing movie: {movie['title']} - language not accepted")
-                    delete(f'movie/{movie["id"]}', {'deleteFiles': True, 'addImportExclusion': False})
+                    delete(f'movie/{movie['id']}', {'deleteFiles': True, 'addImportExclusion': False})
 
-    for movie in MOVIE:
-        logger.info(f"Skipping movie: {movie} - in collection '{COLLECTION_NAME}'")
+    logger.info("------ Logging skipped movies ------")
+    for movie in MOVIE_COLLECTION:
+        logger.info(f"Skipping movie: {movie} - in collection '{MOVIE_COLLECTION_NAME}'")
 
 except Exception as e:
     logger.error(f'An error occurred: {str(e)}')
 
 finally:
-    logger.info('Script ended.')
+    logger.info("====== Script Ended ======")

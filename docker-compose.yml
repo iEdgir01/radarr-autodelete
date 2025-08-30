@@ -7,14 +7,22 @@ services:
     volumes:
       - '/path/to/your/radarr_autodelete/logs:/app/logs'
     environment:
-      - RADARR_URL=http://your_radarr_url:port
-      - RADARR_API_KEY=your_radarr_api
+      #LOGIN FOR PLEX - ALLOWS FOR WATCH HISTORY FILTERING TO THIS SPECIFIC USER
+      - PLEX_USERNAME=your_plex_username
+      - PLEX_PASSWORD=your_plex_password
       - PLEX_URL=http://your_plex_url:port
       - PLEX_TOKEN=your_plex_token
-      - PLEX_USERNAME_FILTER=your_username #Optional, only needed for specific libraries if multiple exist and youw ant to exclude working with other watch history metrics.
+
+      #LOGIN FOR RADARR
+      - RADARR_URL=http://your_radarr_url:port
+      - RADARR_API_KEY=your_radarr_api
+
+      #Language filtering and collection name
       - LANGUAGE_FILTER=true #true/false for language filtering
       - ACCEPTED_LANGUAGES=English,Japanese,Korean 
       - MOVIE_COLLECTION_NAME=Your_PLex_Collection_To_Keep
+
+      #Other settings
       - DRY_RUN=true #true/false for testing
       - PUID=1000 #Change to your PUID
       - PGID=1000 #Change to your PGID
